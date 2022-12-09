@@ -101,6 +101,10 @@ public class AproveDoc extends HttpServlet {
                 case "approve_doc_detail":
                     objResult = _approveDocDetail(__conn, ResponseUtil.str2Json(request.getParameter("data")));
                     break;
+                case "approve_doc_detail_user_pack":
+                    objResult = _approveDocDetailUserPack(__conn, ResponseUtil.str2Json(request.getParameter("data")));
+                    break;
+
                 case "re_confirm_document":
                     objResult = _reConfrim(__conn, ResponseUtil.str2Json(request.getParameter("data")));
                     break;
@@ -455,12 +459,17 @@ public class AproveDoc extends HttpServlet {
         String doc_no = "";
         doc_no = !param.isNull("doc_no") && !param.getString("doc_no").trim().isEmpty() ? param.getString("doc_no") : "";
 
-        String __strQUERY = "select item_code,item_name,wh_code,line_number,coalesce(lot_number_1,'') as lot_number_1,COALESCE((select name_1 from ic_warehouse where code=wh_code), '') AS wh_name,shelf_code,COALESCE((select name_1 from ic_shelf where code=shelf_code and whcode = wh_code), '') AS shelf_name,qty from ic_trans_detail where doc_no = '" + doc_no + "'";
+        String __strQUERY = "select item_code,item_name,wh_code,unit_code, COALESCE((SELECT name_1 FROM ic_unit WHERE ic_unit.code=unit_code),'')AS unit_name,line_number,coalesce(lot_number_1,'') as lot_number_1,COALESCE((select sign_code from ic_inventory where code=item_code), '') AS sign_code ,COALESCE((select name_1 from ic_warehouse where code=wh_code), '') AS wh_name,shelf_code,COALESCE((select name_1 from ic_shelf where code=shelf_code and whcode = wh_code), '') AS shelf_name,qty from ic_trans_detail where doc_no = '" + doc_no + "'";
 
         conn.setAutoCommit(false);
         String __rsHTML = "";
         PreparedStatement __stmt1;
         ResultSet __rsData1;
+        _global __global = new _global();
+        String __xReloadFile = __global._readXmlFile("pickandpackconst.xml");
+        System.out.println(__xReloadFile);
+        JSONObject objJSDataItem = new JSONObject(__xReloadFile);
+
         __stmt1 = conn.prepareStatement(__strQUERY, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         __rsData1 = __stmt1.executeQuery();
 
@@ -470,9 +479,15 @@ public class AproveDoc extends HttpServlet {
         __rsHTML += "<tr class='text-center' style='background-color: #F5B041; color: #F8F9F9'>";
         __rsHTML += "<td><strong>ลำดับ</strong></td>";
         __rsHTML += "<td><strong>รหัสสินค้า ~ ชื่อสินค้า</strong></td>";
+        __rsHTML += "<td><strong>หน่วยนับ</strong></td>";
         __rsHTML += "<td><strong>รหัสคลัง ~ ชื่อคลัง</strong></td>";
         __rsHTML += "<td><strong>รหัสที่เก็บ ~ ชื่อที่เก็บ</strong></td>";
-        __rsHTML += "<td><strong>เลข LOT</strong></td>";
+        if (objJSDataItem.getString("lot_number").equals("1")) {
+            __rsHTML += "<td><strong>เลข LOT</strong></td>";
+        }
+        if (objJSDataItem.getString("sign_code").equals("1")) {
+            __rsHTML += "<td><strong>เครื่องหมาย</strong></td>";
+        }
         __rsHTML += "<td><strong>จำนวน</strong></td>";
         __rsHTML += "</tr>";
 
@@ -492,9 +507,16 @@ public class AproveDoc extends HttpServlet {
             __strDetail += "<tr style='background-color: " + __bgColor + "' color: #000;>";
             __strDetail += "<td><h5><strong>" + (isPlus ? (__rsData1.getInt("line_number") + 1) : __rsData1.getInt("line_number")) + "</strong></h5></td>";
             __strDetail += "<td><h5>" + __rsData1.getString("item_code") + " ~ " + __rsData1.getString("item_name") + "</h5></td>";
+            __strDetail += "<td><h5>" + __rsData1.getString("unit_code") + " ~ " + __rsData1.getString("unit_name") + "</h5></td>";
             __strDetail += "<td><h5>" + __rsData1.getString("wh_code") + " ~ " + __rsData1.getString("wh_name") + "</h5></td>";
             __strDetail += "<td><h5>" + __rsData1.getString("shelf_code") + " ~ " + __rsData1.getString("shelf_name") + "</h5></td>";
-            __strDetail += "<td><h5>" + __rsData1.getString("lot_number_1") + "</h5></td>";
+            if (objJSDataItem.getString("lot_number").equals("1")) {
+                __strDetail += "<td><h5>" + __rsData1.getString("lot_number_1") + "</h5></td>";
+            }
+            if (objJSDataItem.getString("sign_code").equals("1")) {
+                __strDetail += "<td><h5>" + __rsData1.getString("sign_code") + "</h5></td>";
+            }
+
             __strDetail += "<td><h5>" + String.format("%,.2f", Float.parseFloat(__rsData1.getString("qty"))) + "</h5></td>";
             __rsHTML += __strDetail;
             __rsHTML += "</tr>";
@@ -556,6 +578,77 @@ public class AproveDoc extends HttpServlet {
                     + " ,'B-" + __strNewDocNo + "',now(),doc_no,doc_date,due_date,cust_code,sale_code,0,remark,now(),inquiry_type,send_type,department_code,branch_code"
                     + " ,creator_code,create_datetime,'" + __strUserCode + "',total_amount,now(),now(),'" + __rsDataWhCodeAndShelfCode.getString("wh_code") + "'"
                     + " ,'" + __rsDataWhCodeAndShelfCode.getString("shelf_code") + "',now(),lastedit_datetime FROM ic_trans WHERE doc_no = '" + doc_no + "'";
+
+            PreparedStatement __stmtInsertPPTrans;
+            System.out.println("__strQUERY " + __strQUERY);
+            __stmtInsertPPTrans = conn.prepareStatement(__strQUERY);
+            __stmtInsertPPTrans.executeUpdate();
+            __stmtInsertPPTrans.close();
+
+            __strQUERY = "INSERT INTO pp_trans_detail (doc_no,doc_date,ref_code,ref_date,ic_code,wh_code,shelf_code,unit_code,qty,create_date_time_now,department_code,branch_code,line_number,event_qty,sum_amount,price,lot_number_1) SELECT '" + __strTmpDocNo + "',now(),doc_no,doc_date,item_code,wh_code,shelf_code,unit_code,qty,now(),department_code,branch_code,line_number,qty,sum_amount,price,COALESCE(lot_number_1,'') FROM ic_trans_detail WHERE item_code <> '' and  item_code IS NOT NULL  and doc_no='" + doc_no + "' AND wh_code='" + __rsDataWhCodeAndShelfCode.getString("wh_code") + "' AND shelf_code='" + __rsDataWhCodeAndShelfCode.getString("shelf_code") + "' ";
+            PreparedStatement __stmtInsertPPTransDetails;
+            __stmtInsertPPTransDetails = conn.prepareStatement(__strQUERY);
+            __stmtInsertPPTransDetails.executeUpdate();
+            __stmtInsertPPTransDetails.close();
+
+            __strQUERY = "UPDATE pp_trans SET total_amount = (SELECT SUM(sum_amount) FROM pp_trans_detail WHERE doc_no='" + __strNewDocNo + "') WHERE doc_no='" + __strNewDocNo + "'";
+
+            PreparedStatement __stmtUpdateAmount;
+            __stmtUpdateAmount = conn.prepareStatement(__strQUERY);
+            __stmtUpdateAmount.executeUpdate();
+            __stmtUpdateAmount.close();
+
+            __Line++;
+        }
+        __rsDataWhCodeAndShelfCode.close();
+        __rsDataWhCodeAndShelfCode.close();
+        System.err.println(doc_no + ": send_type = 0");
+        conn.commit();
+        __objTMP.put("success", true);
+
+        return __objTMP;
+    }
+
+    private JSONObject _approveDocDetailUserPack(Connection conn, JSONObject param) throws SQLException, Exception {
+        JSONObject __objTMP = new JSONObject("{'success': false}");
+
+        String doc_no = "";
+        doc_no = !param.isNull("doc_no") && !param.getString("doc_no").trim().isEmpty() ? param.getString("doc_no") : "";
+        String user_pack = "";
+        user_pack = !param.isNull("user_pack") && !param.getString("user_pack").trim().isEmpty() ? param.getString("user_pack") : "";
+        String trans_flag = "";
+        trans_flag = !param.isNull("trans_flag") && !param.getString("trans_flag").trim().isEmpty() ? param.getString("trans_flag") : "";
+        String __strWhCode = !param.isNull("wh_code") && !param.getString("wh_code").trim().isEmpty() ? " AND (wh_code IN " + param.getString("wh_code") + ") " : "";
+        String __strShelfCode = !param.isNull("shelf_code") && !param.getString("shelf_code").trim().isEmpty() ? " AND (shelf_code IN " + param.getString("shelf_code") + ") " : "";
+
+        conn.setAutoCommit(false);
+
+        String __strQUERY = "SELECT DISTINCT wh_code,shelf_code FROM ic_trans_detail WHERE doc_no='" + doc_no + "'" + __strWhCode + __strShelfCode + " ORDER BY wh_code";
+        PreparedStatement __stmtGetWhCodeAndShelfCode;
+        ResultSet __rsDataWhCodeAndShelfCode;
+        __stmtGetWhCodeAndShelfCode = conn.prepareStatement(__strQUERY);
+        __rsDataWhCodeAndShelfCode = __stmtGetWhCodeAndShelfCode.executeQuery();
+
+        Integer __Line = 1;
+        while (__rsDataWhCodeAndShelfCode.next()) {
+            StringBuilder __strNewDocNo = new StringBuilder();
+            UUID __strUUID = UUID.fromString("38400000-8cf0-11bd-b23e-10b96e4ef00d");
+            String[] __arrGUID = __strUUID.randomUUID().toString().split("-");
+            __strNewDocNo.append(String.valueOf(__Line));
+            __strNewDocNo.append(__strNewDocNo).append(__arrGUID[0]);
+            String __strTmpDocNo = doc_no + '-';
+            if (String.valueOf(__Line).length() == 1) {
+                __strTmpDocNo += "0" + __Line;
+            } else if (String.valueOf(__Line).length() == 2) {
+                __strTmpDocNo += String.valueOf(__Line);
+            }
+
+            __strQUERY = "INSERT INTO pp_trans(trans_flag,doc_no,e_doc_no,b_doc_no,doc_date,ref_code,ref_date,due_date,cust_code,sale_code,status,remark,"
+                    + " create_date_time_now,sale_type,send_type,department_code,branch_code,creator_code,create_date_time,confirm_code,total_amount,confirm_date,"
+                    + " confirm_time,wh_code,shelf_code,confirm_date_time,lastedit_datetime,user_pack) SELECT " + trans_flag + ",'" + __strTmpDocNo + "','E-" + __strNewDocNo + "'"
+                    + " ,'B-" + __strNewDocNo + "',now(),doc_no,doc_date,due_date,cust_code,sale_code,0,remark,now(),inquiry_type,send_type,department_code,branch_code"
+                    + " ,creator_code,create_datetime,'" + __strUserCode + "',total_amount,now(),now(),'" + __rsDataWhCodeAndShelfCode.getString("wh_code") + "'"
+                    + " ,'" + __rsDataWhCodeAndShelfCode.getString("shelf_code") + "',now(),lastedit_datetime,'" + user_pack + "' FROM ic_trans WHERE doc_no = '" + doc_no + "'";
 
             PreparedStatement __stmtInsertPPTrans;
             System.out.println("__strQUERY " + __strQUERY);

@@ -187,10 +187,19 @@ public class Login extends HttpServlet {
         __rsData1.close();
 
         if (is_authen) {
-
+            _global __global = new _global();
+            String __xReloadFile = __global._readXmlFile("pickandpackconst.xml");
+            System.out.println(__xReloadFile);
+            JSONObject objJSDataItem = new JSONObject(__xReloadFile);
+//            System.out.println("lot_number " + objJSDataItem.getString("lot_number"));
+//            System.out.println("user_pack " + objJSDataItem.getString("user_pack"));
+//            System.out.println("report_style " + objJSDataItem.getString("report_style"));
             HttpSession __session = this.__request.getSession();
             __session.setAttribute("tmp_provider_code", __strProviderCode);
             __session.setAttribute("tmp_user_code", __strUserCode);
+            __session.setAttribute("is_lot_number", objJSDataItem.getString("lot_number"));
+            __session.setAttribute("is_user_pack", objJSDataItem.getString("user_pack"));
+            __session.setAttribute("is_report_style", objJSDataItem.getString("report_style"));
 
             __strQUERY = "SELECT data_code FROM sml_database_list WHERE UPPER(data_code) IN (SELECT UPPER(data_code) FROM sml_database_list_user_and_group WHERE user_or_group_status=0 AND UPPER(user_or_group_code)= ?) OR UPPER(data_code) IN (SELECT UPPER(data_code) FROM sml_database_list_user_and_group WHERE user_or_group_status=1 AND UPPER(user_or_group_code) IN (SELECT UPPER(group_code) FROM sml_user_and_group WHERE UPPER(user_code)=?)) ORDER BY data_name";
             PreparedStatement __stmt2;

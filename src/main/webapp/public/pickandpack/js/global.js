@@ -111,7 +111,7 @@ function __activeUsers() {
 
 function __updateActiveTimes() {
     var myDate = new Date();
-    myDate.setTime(myDate.getTime() + 15 * 60 * 1000);
+    myDate.setTime(myDate.getTime() + 60 * 60 * 1000);
     document.cookie = "activetime=yes; expires=" + myDate.toUTCString();
 }
 

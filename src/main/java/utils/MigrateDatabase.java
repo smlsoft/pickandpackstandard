@@ -70,8 +70,10 @@ public class MigrateDatabase {
         ppTrans.addColumns(new MigrateColumnModel("is_print", "integer", "NOT NULL DEFAULT 0"));
         ppTrans.addColumns(new MigrateColumnModel("is_confirm", "integer", "NOT NULL DEFAULT 0"));
         ppTrans.addColumns(new MigrateColumnModel("car_code", "character varying", 255));
+        ppTrans.addColumns(new MigrateColumnModel("user_pack", "character varying", 255));
         ppTrans.addColumns(new MigrateColumnModel("tms_que_shipment_code", "character varying", 255));
         ppTrans.addColumns(new MigrateColumnModel("lastedit_datetime", "timestamp", "without time zone"));
+         
 
         ppTrans.addConstraint("pp_trans_pk_primary PRIMARY KEY (doc_no)");
         ppTrans.addIndex(new MigrateIndexModel("pp_trans_doc_date_idx", new String[]{"doc_date"}));
@@ -186,11 +188,6 @@ public class MigrateDatabase {
 
         smlWebPages.addAfterScript("INSERT INTO sml_web_pages (roworder,p_code,p_name) VALUES ('11','P0000000011', 'ประวัติการทำรายการ')");
 
-        smlWebPages.addAfterScript("INSERT INTO sml_web_pages (roworder,p_code,p_name) VALUES ('12','P0000000012', 'รายงาน วิเคราะห์การจ่ายสินค้าขาด')");
-
-        smlWebPages.addAfterScript("INSERT INTO sml_web_pages (roworder,p_code,p_name) VALUES ('13','P0000000013', 'รายงาน ระยะเวลาในการจัดสินค้าและส่งมอบสินค้า')");
-
-        smlWebPages.addAfterScript("INSERT INTO sml_web_pages (roworder,p_code,p_name) VALUES ('14','P0000000014', 'รายงาน สินค้าสั่งพิเศษค้างจ่าย')");
 
         // ========================== sml_user_group ===========================
         MigrateTableModel smlUserGroup = new MigrateTableModel("sml_user_group");

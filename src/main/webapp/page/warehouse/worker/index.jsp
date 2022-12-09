@@ -29,7 +29,9 @@
         <!-- HIDDEN -->
         <input type="hidden" id="h_page_code" value="<%=__strPageCode%>">
         <input type="hidden" id="h_user_code" value="${user_code}">
+        <input type="text" value="<%=__session.getAttribute("is_report_style")%>" id="is_report_style">
         <input type="hidden" id="h_sub_link" value="${sublink}">
+
         <!-- CONTENT -->
         <div class="container body">
             <div class="main_container">

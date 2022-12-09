@@ -7,7 +7,7 @@
 //    request.setAttribute("css", Arrays.asList("css/sweetalert.css", "css/bootstrap-datetimepicker.min.css"));
     request.setAttribute("js", Arrays.asList(
             // "../../../public/pickandpack/js/global.js",
-//            "../../../conf.js",
+            //            "../../../conf.js",
             "../../../public/pickandpack/js/approve/admin/script.js"));
     HttpSession __session = request.getSession();
 %>
@@ -31,6 +31,7 @@
         <input type="hidden" id="h_page_code" value="<%=__strPageCode%>">
         <input type="hidden" id="h_user_code" value="${user_code}">
         <input type="hidden" id="h_sub_link" value="${sublink}">
+        <input type="hidden" value="<%=__session.getAttribute("is_user_pack")%>" id="is_user_pack">
         <!-- CONTENT -->
         <div class="container body">
             <div class="main_container">
@@ -187,6 +188,31 @@
                                             <button id="btn-pagi-last" class="btn btn-default btn-flat" type="button"><i class="fa fa-angle-double-right"></i></button>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal fade" id="addUserPack" tabindex="-1" role="dialog" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h3 class="modal-title">อนุมัติใบจัด <span  id=""></span></h3>
+                                </div>
+                                <div class="modal-body" id="body-detail">
+                                    <div>
+                                        <label>เอกสารเลขที่</label>
+                                        <input type="text" class="form-control" id="userpack_docno" readonly>
+                                    </div>
+                                    <input type="hidden" class="form-control" id="userpack_trans" readonly>
+                                    <br>
+                                    <div>
+                                        <label>ผู้จัดทำ</label>
+                                        <input type="text" class="form-control" id="approve_user_pack">
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">ยกเลิก</button>
+                                    <button type="button" class="btn btn-success" id="approve_userpack_doc">อนุมัติใบจัด</button>
                                 </div>
                             </div>
                         </div>

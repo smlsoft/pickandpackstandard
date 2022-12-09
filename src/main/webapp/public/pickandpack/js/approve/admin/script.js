@@ -43,7 +43,7 @@ $(function () {
             _refreshPAGE();
         }, 4000);
         setTimeout(function () {
-          //  _refreshPAGEAuto();
+            //  _refreshPAGEAuto();
         }, 20000);
     });
 
@@ -253,12 +253,29 @@ $(function () {
         __updateActiveTimes();
         var key_id = $(this).parents("tr").attr("key_id");
         var trans = $(this).parents("tr").attr("trans");
-        swal(__getDialogOption('อนุมัติ', "เอกสารเลขที่ " + key_id + " ใช่หรือไม่?")).then(function () {
-            _approveDoc(key_id, trans);
-        }, function (dissmiss) {
-            if (dissmiss === "cancel") {
-            }
-        });
+        var is_user_pack = $('#is_user_pack').val();
+        if (is_user_pack == '1') {
+
+            $('#userpack_trans').val(trans)
+            $('#userpack_docno').val(key_id)
+            $('#addUserPack').modal('show');
+        } else {
+            swal(__getDialogOption('อนุมัติ', "เอกสารเลขที่ " + key_id + " ใช่หรือไม่?")).then(function () {
+                _approveDoc(key_id, trans);
+            }, function (dissmiss) {
+                if (dissmiss === "cancel") {
+                }
+            });
+        }
+    });
+
+
+    $('#approve_userpack_doc').on('click', function () {
+        var doc_no = $('#userpack_docno').val();
+        var user_pack = $('#approve_user_pack').val();
+        var trans = $('#userpack_trans').val();
+
+        _approveDocUserPack(doc_no, trans, user_pack);
 
     });
 
@@ -532,7 +549,7 @@ function _getMainDetailOnRefresh(sendData) {
         data: {data: JSON.stringify(sendData)},
         beforeSend: function () {
 
-           // $("#content-pagination-box").empty();
+            // $("#content-pagination-box").empty();
         },
         success: function (response) {
             // $("#content-table-list").empty();
@@ -717,6 +734,33 @@ function __showErrorBox(response) {
     tmpErr.find("#txt-err-title").text(response.err_title);
     tmpErr.find("#txt-err-msg").text(response.err_msg);
     $("#content-error-box").empty().append(tmpErr).show('fast');
+}
+
+function _approveDocUserPack(KEY_ID, trans, userpack) {
+
+    var sendData = {
+        doc_no: KEY_ID,
+        trans_flag: trans,
+        user_pack: userpack,
+        wh_code: __addCommaData(__allWhCodePage.split(','), 2),
+        shelf_code: __addCommaData(__allShelfCodePage.split(','), 2)
+    };
+    $.ajax({
+        url: __SUB_LINK + SERVER_URL + "?action_name=approve_doc_detail_user_pack",
+        type: "GET",
+        data: {data: JSON.stringify(sendData)},
+        success: function (response) {
+            if (response.success) {
+                __alertToastMessage("อนุมัติเอกสารเรียบร้อยแล้ว", "success");
+                $('#addUserPack').modal('hide');
+                _refreshPAGE();
+                //$("#content-table-list").find("#" + KEY_ID).html(response.data).show('fast');
+            } else {
+                //$("#content-table-list").find("#" + KEY_ID).html(response.data).show('fast');
+                __showErrorBox(response);
+            }
+        }
+    });
 }
 
 function _approveDoc(KEY_ID, trans) {

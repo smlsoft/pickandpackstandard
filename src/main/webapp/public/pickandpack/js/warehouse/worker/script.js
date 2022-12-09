@@ -312,6 +312,19 @@ $(function () {
         _checkCancelDocument();
     });
 
+    $("#content-table-list").on("click", ".btn-confirm-doc", function () {
+        __updateActiveTimes();
+
+        IS_SCAN_DOCUMENT = true;
+        var btn = $(this);
+        var doc_no = btn.attr("key_id");
+        var ref_doc = btn.attr("ref_code");
+        var trans_flag = btn.attr("trans_flag");
+
+        _scanDocument('B', doc_no);
+    });
+
+
     $("#content-table-list").on("click", "#btn-delete", function () {
         __updateActiveTimes();
         IS_DELETE = true;
@@ -684,6 +697,7 @@ function _scanDocument(type_code, barcode) {
         type: "GET",
         data: {data: JSON.stringify(sendData)},
         success: function (response) {
+            console.log(response)
             if (response.success) {
                 if (response.data.length > 0) {
                     CURRENT_PAGE = 0;
@@ -731,8 +745,13 @@ function _printData() {
     var sendDatax = {
         key_id: tmpDocNo
     };
-
+    var is_report_style = $('#is_report_style').val();
+    
     var targetURL = "../print/index.jsp";
+    
+    if(is_report_style=='1'){
+        targetURL = "../print/style2.jsp";
+    }
     var sendData = [
         'ref_code=' + tmpRefCode,
         'doc_no=' + tmpDocNo,

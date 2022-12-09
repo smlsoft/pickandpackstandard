@@ -333,6 +333,7 @@ public class Administration extends HttpServlet {
         String __strQUERY = "SELECT doc_no,ic_code,wh_code,shelf_code,qty,event_qty,status,line_number,COALESCE(lot_number_1,'') as lot_number_1, "
                 + " COALESCE((SELECT name FROM tms_reason WHERE tms_reason.code=pp_trans_detail.remark and tms_reason.reason_flag=4),'')AS remark, "
                 + " COALESCE((SELECT name_1 FROM ic_inventory WHERE ic_inventory.code=ic_code),'')AS item_name, "
+                + " COALESCE((select sign_code from ic_inventory where code=ic_code), '') AS sign_code, "
                 + " COALESCE((SELECT name_1 FROM ic_warehouse WHERE ic_warehouse.code=wh_code),'')AS wh_name, "
                 + " COALESCE((SELECT name_1 FROM ic_shelf WHERE ic_shelf.code=shelf_code AND ic_shelf.whcode=wh_code),'')AS shelf_name "
                 + " FROM pp_trans_detail " + __strQueryExtends + " ORDER BY line_number";
@@ -343,6 +344,10 @@ public class Administration extends HttpServlet {
         ResultSet __rsData1;
         __stmt1 = conn.prepareStatement(__strQUERY, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         __rsData1 = __stmt1.executeQuery();
+        _global __global = new _global();
+        String __xReloadFile = __global._readXmlFile("pickandpackconst.xml");
+        System.out.println(__xReloadFile);
+        JSONObject objJSDataItem = new JSONObject(__xReloadFile);
 
         __rsHTML += "<td colspan='13' style='padding: 5px 0'>";
         __rsHTML += "<div>";
@@ -355,7 +360,14 @@ public class Administration extends HttpServlet {
         __rsHTML += "<td><strong>รหัสที่เก็บ ~ ชื่อที่เก็บ</strong></td>";
         __rsHTML += "<td><strong>จำนวน</strong></td>";
         __rsHTML += "<td><strong>จำนวนที่จัดได้</strong></td>";
-        __rsHTML += "<td><strong>เลขLOT</strong></td>";
+        if (objJSDataItem.getString("lot_number").equals("1")) {
+            __rsHTML += "<td><strong>เลขLOT</strong></td>";
+        }
+        if (objJSDataItem.getString("sign_code").equals("1")) {
+            __rsHTML += "<td><strong>เครื่องหมาย</strong></td>";
+
+        }
+
         __rsHTML += "<td><strong>สถานะ</strong></td>";
         __rsHTML += "<td><strong>หมายเหตุ</strong></td>";
         __rsHTML += "</tr>";
@@ -382,7 +394,13 @@ public class Administration extends HttpServlet {
             __strDetail += "<td><h5>" + __rsData1.getString("shelf_code") + " ~ " + __rsData1.getString("shelf_name") + "</h5></td>";
             __strDetail += "<td><h5>" + String.format("%,.2f", Float.parseFloat(__rsData1.getString("qty"))) + "</h5></td>";
             __strDetail += "<td><h5>" + String.format("%,.2f", Float.parseFloat(__rsData1.getString("event_qty"))) + "</h5></td>";
-            __strDetail += "<td><h5>" + __rsData1.getString("lot_number_1") + "</h5></td>";
+            if (objJSDataItem.getString("lot_number").equals("1")) {
+                __strDetail += "<td><h5>" + __rsData1.getString("lot_number_1") + "</h5></td>";
+            }
+            if (objJSDataItem.getString("sign_code").equals("1")) {
+                __strDetail += "<td><h5>" + __rsData1.getString("sign_code") + "</h5></td>";
+            }
+
             __strDetail += "<td style='color: #FFF; background-color: " + __arrBgStatus[__status] + "'><h5>" + __arrStatus[__status] + "</h5></td>";
             __strDetail += "<td><h5>" + __rsData1.getString("remark") + "</h5></td>";
 

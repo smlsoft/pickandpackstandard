@@ -577,7 +577,13 @@ function _printData() {
         key_id: tmpRefCode,
         car_code: _carCode
     };
+    var is_report_style = $('#is_report_style').val();
+
     var targetURL = "../print/index.jsp";
+
+    if (is_report_style == '1') {
+        targetURL = "../print/style2.jsp";
+    }
     var sendData = [
         'ref_code=' + tmpRefCode,
         'wh_code=' + __whCode,

@@ -207,7 +207,7 @@ public class Worker extends HttpServlet {
         __strQueryExtends2 = __strQueryExtends2.equals("") ? "" : " WHERE 1=1 " + __strQueryExtends2;
 
         String __strQUERY = "SELECT * FROM ("
-                + " SELECT ref_code,cust_code,is_print,is_confirm,last_status,send_type,doc_no,trans_flag "
+                + " SELECT ref_code,cust_code,is_print,is_confirm,last_status,send_type,doc_no,trans_flag,b_doc_no "
                 + " ,COALESCE (create_date_time, '') AS create_date_time "
                 + " ,COALESCE ((SELECT SUM(sum_amount) FROM pp_trans_detail WHERE pp_trans_detail.doc_no=pp_trans.doc_no), 0) AS total_amount "
                 + " ,COALESCE (car_code, '') AS car_code "
@@ -237,6 +237,7 @@ public class Worker extends HttpServlet {
             String __strRefCode = __rsData1.getString("ref_code");
             String __strDocNO = __rsData1.getString("doc_no");
             String __strTransFlag = __rsData1.getString("trans_flag");
+            String __b_doc_no = __rsData1.getString("b_doc_no");
             String __strCreateDateTime = __rsData1.getString("create_date_time").equals("") ? "-" : __rsData1.getString("create_date_time");
             String __strExpectDate = __rsData1.getString("expect_date").equals("") ? "-" : __rsData1.getString("expect_date");
             String __strRoundNO = __rsData1.getString("round_no").equals("") ? "-" : __rsData1.getString("round_no");
@@ -272,6 +273,7 @@ public class Worker extends HttpServlet {
             } else {
                 __rsHTML += "<td><button type='button' id='btn-print' class='btn btn-success btn-flat is_print' key_id='" + __strDocNO + "' ref_code='" + __strRefCode + "' trans_flag='" + __strTransFlag + "' is_print='" + __isPrint + "' disabled>พิมพ์</button></td>";
             }
+            __rsHTML += "<td><button type='button' class='btn-confirm-doc btn btn-success btn-flat' key_id='" + __b_doc_no + "' ref_code='" + __strRefCode + "' trans_flag='" + __strTransFlag + "'>จัดเสร็จ</button></td>";
             __rsHTML += "<td><button type='button' id='btn-close-doc' class='btn btn-danger btn-flat' key_id='" + __strDocNO + "' ref_code='" + __strRefCode + "' trans_flag='" + __strTransFlag + "'>ปิดใบจัด</button></td>";
             __rsHTML += "<td><button type='button' id='btn-delete' class='btn btn-danger btn-flat' key_id='" + __strRefCode + "'>ลบ</button></td>";
             __rsHTML += "</tr>";
@@ -305,6 +307,7 @@ public class Worker extends HttpServlet {
         String __strQUERY = "SELECT status,ic_code,ref_code,unit_code,shelf_code, qty ,event_qty ,wh_code,line_number,COALESCE(lot_number_1,'') as lot_number_1 "
                 + " ,COALESCE((SELECT name_1 FROM ic_inventory WHERE ic_inventory.code = pp_trans_detail.ic_code), '') AS item_name "
                 + " ,COALESCE((SELECT name_1 FROM ic_warehouse WHERE ic_warehouse.code = pp_trans_detail.wh_code),'') AS wh_name "
+                + " ,COALESCE((select sign_code from ic_inventory where code=ic_code), '') AS sign_code "
                 + " ,COALESCE((SELECT name FROM tms_reason WHERE tms_reason.code = remark and reason_flag= 4 ),'') AS remark "
                 + " ,COALESCE((SELECT name_1 FROM ic_shelf WHERE ic_shelf.code = pp_trans_detail.shelf_code AND ic_shelf.whcode= pp_trans_detail.wh_code),'')AS shelf_name "
                 + " ,COALESCE((SELECT name_1 FROM ic_unit WHERE ic_unit.code = pp_trans_detail.unit_code), '')AS unit_name "
@@ -316,7 +319,10 @@ public class Worker extends HttpServlet {
         ResultSet __rsData1;
         __stmt1 = conn.prepareStatement(__strQUERY, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         __rsData1 = __stmt1.executeQuery();
-
+        _global __global = new _global();
+        String __xReloadFile = __global._readXmlFile("pickandpackconst.xml");
+        System.out.println(__xReloadFile);
+        JSONObject objJSDataItem = new JSONObject(__xReloadFile);
         __rsHTML += "<td colspan='14' style='padding: 5px 0'>";
         __rsHTML += "<div>";
         __rsHTML += "<table class='table table-hover' style='margin: 0;'>";
@@ -327,7 +333,14 @@ public class Worker extends HttpServlet {
         __rsHTML += "<td><strong>รหัสที่เก็บ ~ ชื่อที่เก็บ</strong></td>";
         __rsHTML += "<td><strong>จำนวน</strong></td>";
         __rsHTML += "<td><strong>จำนวนที่จัดได้</strong></td>";
-        __rsHTML += "<td><strong>เลข LOT</strong></td>";
+        if (objJSDataItem.getString("lot_number").equals("1")) {
+            __rsHTML += "<td><strong>เลข LOT</strong></td>";
+        }
+        if (objJSDataItem.getString("sign_code").equals("1")) {
+
+            __rsHTML += "<td><strong>เครื่องหมาย</strong></td>";
+        }
+
         __rsHTML += "<td><strong>สถานะ</strong></td>";
         __rsHTML += "<td><strong>หน่วยนับ</strong></td>";
         __rsHTML += "<td><strong>หมายเหตุ</strong></td>";
@@ -354,7 +367,14 @@ public class Worker extends HttpServlet {
             __strDetail += "<td><h5>" + __rsData1.getString("shelf_code") + " ~ " + __rsData1.getString("shelf_name") + "</h5></td>";
             __strDetail += "<td><h5>" + String.format("%.2f", Double.parseDouble(__rsData1.getString("qty"))) + "</h5></td>";
             __strDetail += "<td><input type='text' class='form-control text-center input-qty' value='" + String.format("%.2f", Double.parseDouble(__rsData1.getString("event_qty"))) + "' doc_no='" + __strDocNo + "' ref_code='" + __rsData1.getString("ref_code") + "' lot='" + __rsData1.getString("lot_number_1") + "' qty='" + __rsData1.getInt("qty") + "' remark='" + __rsData1.getString("remark") + "' ic_code='" + __rsData1.getString("ic_code") + "' status='" + __rsData1.getString("status") + "'></td>";
-            __strDetail += "<td><h5>" + __rsData1.getString("lot_number_1") + "</h5></td>";
+
+            if (objJSDataItem.getString("lot_number").equals("1")) {
+                __strDetail += "<td><h5>" + __rsData1.getString("lot_number_1") + "</h5></td>";
+            }
+            if (objJSDataItem.getString("sign_code").equals("1")) {
+
+                __strDetail += "<td><h5>" + __rsData1.getString("sign_code") + "</h5></td>";
+            }
             __strDetail += "<td style='color: #FFF; background-color: " + __arrBgStatus[__status] + "'><h5>" + __arrStatus[__status] + "</h5></td>";
             __strDetail += "<td><h5>" + __rsData1.getString("unit_name") + "</h5></td>";
             __strDetail += "<td><h5>" + __rsData1.getString("remark") + "</h5></td>";
