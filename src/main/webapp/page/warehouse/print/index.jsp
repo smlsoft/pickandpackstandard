@@ -26,7 +26,7 @@
         <link href="../../../public/plugins/sweetalert/themes/twitter/twitter.css" rel="stylesheet">
         <style type="text/css" media="print">
             @page {
-                size: A5;
+                size: A4;
                 margin-left: 5px;
                 margin-top: 5px;
                 padding-right: 10px;
@@ -36,7 +36,7 @@
 
             div.content-print-layout
             {
-                page-break-after: always;
+                page-break-after: auto;
                 page-break-inside: avoid;
             }
 
