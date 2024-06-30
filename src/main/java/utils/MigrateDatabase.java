@@ -188,6 +188,9 @@ public class MigrateDatabase {
 
         smlWebPages.addAfterScript("INSERT INTO sml_web_pages (roworder,p_code,p_name) VALUES ('11','P0000000011', 'ประวัติการทำรายการ')");
 
+        smlWebPages.addAfterScript("INSERT INTO sml_web_pages (roworder,p_code,p_name) VALUES ('15','P0000000015', 'อนุมัติใบจัด')");
+
+
 
         // ========================== sml_user_group ===========================
         MigrateTableModel smlUserGroup = new MigrateTableModel("sml_user_group");

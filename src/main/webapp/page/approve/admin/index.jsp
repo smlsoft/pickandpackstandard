@@ -1,12 +1,12 @@
 <%@page import="java.util.Arrays"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@include file="../../../global.jsp"%>
-<%    String __strPageCode = "P0000000001";
+<%    String __strPageCode = "P0000000015";
     request.setAttribute("sublink", "../../../");
     request.setAttribute("title", "อนุมัติใบจัด");
 //    request.setAttribute("css", Arrays.asList("css/sweetalert.css", "css/bootstrap-datetimepicker.min.css"));
     request.setAttribute("js", Arrays.asList(
-            // "../../../public/pickandpack/js/global.js",
+             "../../../public/pickandpack/js/global.js",
             //            "../../../conf.js",
             "../../../public/pickandpack/js/approve/admin/script.js"));
     HttpSession __session = request.getSession();
