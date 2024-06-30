@@ -206,7 +206,8 @@ public class Administration extends HttpServlet {
                 + " END AS main_status "
                 + " FROM pp_trans " + __strQueryExtends
                 + " AND (is_close=0) "
-                + " AND ((trans_flag=36 AND sale_type=0) OR (trans_flag=44 AND sale_type IN (1,3) AND is_close=0) OR (trans_flag=34)) "
+                //+ " AND ((trans_flag=36 AND sale_type=0) OR (trans_flag=44 AND sale_type IN (1,3) AND is_close=0) OR (trans_flag=34)) "
+                + " AND ((trans_flag=36 AND sale_type=0) OR (trans_flag=44 AND is_close=0) OR (trans_flag=34)) "  //ดูทั้งเงินสด เงินเชื่อ
                 + " AND  EXISTS (SELECT * FROM (SELECT doc_no,trans_flag FROM ic_trans WHERE (trans_flag=36) OR (trans_flag=44) OR trans_flag=34) AS ic_trans WHERE ic_trans.doc_no = pp_trans.ref_code) "
                 + ") AS pp_trans WHERE main_status='0' " + __strQueryExtends2 + " ORDER BY create_date_time DESC,ref_code";
 
@@ -275,7 +276,7 @@ public class Administration extends HttpServlet {
 
                 switch (statusPPtrans) {
                     case 0:
-                        __rsHTML += "<td><h5>ปกติ</h5></td>";
+                        __rsHTML += "<td><h5>รอจัด</h5></td>";
                         break;
                     case 1:
                         String[] sptStatusDetail = __strStatusDetail.split(",");
