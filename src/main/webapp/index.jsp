@@ -42,7 +42,7 @@
                         <div class="page-title">
                             <div class="title">
                                 <div class="col-md-12 col-sm-12 col-xs-12">
-                                    <h3>${title} | สวัสดีคุณ ${user_name}</h3>
+                                    <h3>${title} | สวัสดีคุณ${user_name}</h3>
                                 </div>
                             </div>
                         </div>
