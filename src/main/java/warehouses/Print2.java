@@ -578,7 +578,7 @@ public class Print2 extends HttpServlet {
         DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         Date date = new Date();
 
-        __strQuery = "SELECT wh_code, doc_no, e_doc_no, b_doc_no,user_pack,(select name_1 from erp_user where upper(code) = upper('" + __strUserCode + "')) as user_print FROM pp_trans WHERE ref_code='" + __strRefCode + "'" + __strDocNo + " AND (wh_code IN " + __strWhCode + ") AND (shelf_code IN " + __strShelfCode + ") AND is_close=0 " + __strCarCode + __strShipmentCode;
+        __strQuery = "SELECT wh_code, doc_no, e_doc_no, b_doc_no,coalesce(user_pack,'') as user_pack,(select name_1 from erp_user where upper(code) = upper('" + __strUserCode + "')) as user_print FROM pp_trans WHERE ref_code='" + __strRefCode + "'" + __strDocNo + " AND (wh_code IN " + __strWhCode + ") AND (shelf_code IN " + __strShelfCode + ") AND is_close=0 " + __strCarCode + __strShipmentCode;
 
         PreparedStatement __stmt;
         ResultSet __rsData;
@@ -599,9 +599,12 @@ public class Print2 extends HttpServlet {
                 String newDate = dateFormat.format(date);
                 String BAR_B_DOC_NO = javax.xml.bind.DatatypeConverter.printBase64Binary(genBarcode._barcodeByte(__rsData.getString("b_doc_no"), 0, 70));
                 String BAR_E_DOC_NO = javax.xml.bind.DatatypeConverter.printBase64Binary(genBarcode._barcodeByte(__rsData.getString("e_doc_no"), 0, 70));
+                String BAR_DOC_NO = javax.xml.bind.DatatypeConverter.printBase64Binary(genBarcode._barcodeByte(__rsData.getString("doc_no"), 0, 70));
 
                 __objData.put("barcode_b", BAR_B_DOC_NO);
                 __objData.put("barcode_e", BAR_E_DOC_NO);
+                __objData.put("barcode_d", BAR_DOC_NO);
+
                 __objData.put("remark", __strRemark);
                 __objData.put("date", newDate);
                 __objData.put("user_pack", __rsData.getString("user_pack"));
@@ -618,26 +621,32 @@ public class Print2 extends HttpServlet {
 
     private String renderPrintHeader(Connection __conn, ResultSet __rsDataHead, JSONObject objData, Integer loopCount, Integer totalCount) throws Exception {
         String __strBarCodeB = objData.getString("barcode_b");
+        String __strBarCodeD = objData.getString("barcode_d");
         String __strShelfCode = objData.getString("shelf_code");
 
         String __strQuery;
         String __strHTML = "";
         __strHTML += "<div class='divHeader' style='padding: 5px 0'>";
-        __strHTML += "  <div class='row' style='font-size: 15px;'>";
-        __strHTML += "      <div class='col-md-6 col-sm-6 col-xs-4'>";
         if (loopCount == 1) {
+            __strHTML += "  <div class='row' style='font-size: 15px;'>";
+
+            __strHTML += "      <div class='col-md-6 col-sm-6 col-xs-6'>";
+            __strHTML += "          <img src='data:image/jpg;base64," + __strBarCodeD + "'>";
+            __strHTML += "      </div>";
+            __strHTML += "      <div class='col-md-6 col-sm-6 col-xs-6 text-center' style='padding-right:0px;margin-right:0px'>";
             __strHTML += "          <img src='data:image/jpg;base64," + __strBarCodeB + "'>";
+            __strHTML += "      </div>";
+            __strHTML += "      </div>";
         }
-        __strHTML += "      </div>";
-        __strHTML += "      <div class='col-md-6 col-sm-6 col-xs-8'>";
-        __strHTML += "          <div class='row text-right'>";
+
+        __strHTML += "      <div class='col-md-12 col-sm-12 col-xs-12'>";
+        __strHTML += "          <div class='row text-center'>";
         __strHTML += "              <div class='col-md-12 col-sm-12 col-xs-12'>";
         __strHTML += "                  <p style='font-size: 16px;'><strong>ใบจัดสินค้า</strong></p>";
         __strHTML += "                  <p>เลขที่เอกสาร: " + __rsDataHead.getString("doc_no") + "</p>";
         __strHTML += "              </div>";
         __strHTML += "          </div>";
         __strHTML += "      </div>";
-        __strHTML += "  </div>";
 
         __strQuery = "SELECT * FROM( "
                 + " SELECT  pp_trans.doc_no,pp_trans.doc_date,pp_trans.sale_type,pp_trans.ref_date,pp_trans.ref_code,pp_trans.sale_type,pp_trans.sale_code,pp_trans.send_type,pp_trans.confirm_date_time "
@@ -646,6 +655,7 @@ public class Print2 extends HttpServlet {
                 + " ,COALESCE(branch_code, '') AS branch_code,COALESCE((SELECT name_1 FROM erp_branch_list WHERE erp_branch_list.code = pp_trans.branch_code),'') AS branch_name "
                 + " ,COALESCE(sale_code, '') AS sale_code,COALESCE((SELECT name_1 FROM erp_user WHERE erp_user.code = pp_trans.sale_code),'') AS sale_name "
                 + " ,COALESCE(confirm_code, '') AS confirm_code,COALESCE((SELECT name_1 FROM erp_user WHERE erp_user.code = pp_trans.confirm_code),'') AS confirm_name "
+                + " ,(select name_1 from ar_logistic_area where code=(select logistic_area from ar_customer_detail where ar_code=cust_code)) as logistic_area_name"
                 + " ,COALESCE((SELECT wh_code from pp_trans_detail WHERE pp_trans_detail.doc_no = pp_trans.doc_no limit 1), '') AS wh_code,COALESCE((SELECT shelf_code from pp_trans_detail WHERE pp_trans_detail.doc_no = pp_trans.doc_no limit 1), '') AS shelf_code,COALESCE((SELECT name_1 FROM ic_warehouse WHERE ic_warehouse.code = (SELECT wh_code from pp_trans_detail WHERE pp_trans_detail.doc_no = pp_trans.doc_no limit 1)),'') AS wh_name "
                 + " ,COALESCE((SELECT DISTINCT car_code FROM tms_que_shipment AS tms WHERE tms.doc_no=pp_trans.tms_que_shipment_code),'') AS car_code "
                 + " ,COALESCE((SELECT DISTINCT to_char(receive_date, 'YYYY-MM-DD HH24:MI:SS') FROM tms_que_shipment AS tms WHERE tms.doc_no=pp_trans.tms_que_shipment_code),'') AS receive_date "
@@ -668,6 +678,7 @@ public class Print2 extends HttpServlet {
             String __strSaleName = __rsData.getString("sale_name") != null ? !__rsData.getString("sale_name").isEmpty() ? __rsData.getString("sale_name") : "" : "";
             String __strSaleType = __rsData.getString("sale_type") != null ? !__rsData.getString("sale_type").isEmpty() ? __rsData.getString("sale_type") : "0" : "0";
             String __strSendType = __rsData.getString("send_type") != null ? !__rsData.getString("send_type").isEmpty() ? __rsData.getString("send_type") : "0" : "0";
+            String __strLogisticAreaName = __rsData.getString("logistic_area_name") != null ? !__rsData.getString("logistic_area_name").isEmpty() ? __rsData.getString("logistic_area_name") : "" : "";
             String __strCarCode = __rsData.getString("car_code") != null ? !__rsData.getString("car_code").isEmpty() ? __rsData.getString("car_code") : "-" : "-";
             String __strRecieveDate = __rsData.getString("receive_date") != null ? !__rsData.getString("receive_date").isEmpty() ? __rsData.getString("receive_date") : "-" : "-";
 
@@ -693,12 +704,18 @@ public class Print2 extends HttpServlet {
             __strHTML += "  <div class='col-md-2 col-sm-2 col-xs-2 text-left'>";
             __strHTML += "      <p><strong>ประเภทการส่ง:</strong> " + __arrSendType[Integer.parseInt(__strSendType)] + "</p>";
             __strHTML += "  </div>";
+
+            __strHTML += "  <div class='col-md-3 col-sm-3 col-xs-3 text-center'>";
+            __strHTML += "      <p><strong>เขตการขนส่ง:</strong> " + __strLogisticAreaName + "</p>";
+            __strHTML += "  </div>";
+
             __strHTML += "  <div class='col-md-2 col-sm-2 col-xs-2 text-left'>";
             __strHTML += "      <p><strong>ทะเบียนรถ:</strong> " + __strCarCode + "</p>";
             __strHTML += "  </div>";
-            __strHTML += "  <div class='col-md-5 col-sm-5 col-xs-5 text-center'>";
+            __strHTML += "  <div class='col-md-3 col-sm-3 col-xs-3 text-center'>";
             __strHTML += "      <p><strong>วันที่และเวลาเข้ารับสินค้า:</strong> " + __routine._convertDateTime(__strRecieveDate) + "</p>";
             __strHTML += "  </div>";
+
             __strHTML += "  <div class='col-md-2 col-sm-2 col-xs-2 text-right'>";
             __strHTML += "      <p>" + __rsData.getString("wh_code") + "/" + __rsData.getString("shelf_code") + "</p>";
             __strHTML += "  </div>";
@@ -749,7 +766,7 @@ public class Print2 extends HttpServlet {
         for (int loop = 0; loop < totalCount1; loop++) {
             __strHTML += "<div class='content-print-layout'>";
             __strHTML += renderPrintHeader(__conn, __rsDataHead, objData, (loop + 1), totalCount1); // header
-            __strHTML += "<div class='divBody' style='height: 380px;'>";
+            __strHTML += "<div class='divBody' style='height: 360px;'>";
             __strHTML += "  <table class='table table-condensed text-center' style='margin-bottom: 0;'>";
             __strHTML += "      <thead style='font-size: 14px;'>"
                     + "             <tr>"
@@ -777,7 +794,7 @@ public class Print2 extends HttpServlet {
                 String __strUnitName = __rsData.getString("unit_name") != null ? !__rsData.getString("unit_name").isEmpty() ? __rsData.getString("unit_name") : "" : "";
                 String __sign_code = __rsData.getString("sign_code") != null ? !__rsData.getString("sign_code").isEmpty() ? __rsData.getString("sign_code") : "" : "";
                 Connection __conn_pic = null;
-                __conn_pic = __routine._connect(__strDatabaseName+"_images", _global.FILE_CONFIG(__strProviderCode));
+                __conn_pic = __routine._connect(__strDatabaseName + "_images", _global.FILE_CONFIG(__strProviderCode));
                 String query = "select image_file from images where image_id = '" + __strItemCode + "' limit 1";
                 System.out.println("__strQUERY1 " + query);
                 PreparedStatement __stmtHeader;
@@ -803,7 +820,7 @@ public class Print2 extends HttpServlet {
 
                 }
                 __conn_pic.close();
-                
+
                 __strHTML += "      <tr>";
                 __strHTML += "          <td>" + __strItemCode + "</td>";
                 __strHTML += "          <td>" + __rsData.getString("barcode") + "</td>";
