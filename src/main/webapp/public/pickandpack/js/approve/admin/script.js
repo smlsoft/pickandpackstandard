@@ -54,10 +54,10 @@ $(function () {
             CURRENT_PAGE = 0;
             var ref_code = $("#txt-search").val().trim();
             var sendData = {};
-            sendData = {
-                wh_code: __addCommaData(__allWhCodePage.split(','), 2),
-                shelf_code: __addCommaData(__allShelfCodePage.split(','), 2)
-            };
+//            sendData = {
+//                wh_code: __addCommaData(__allWhCodePage.split(','), 2),
+//                shelf_code: __addCommaData(__allShelfCodePage.split(','), 2)
+//            };
             var from_date = __formatDate($("#txt-search-date-from").val());
             var to_date = __formatDate($("#txt-search-date-to").val());
             if (from_date !== "NaN-NaN-NaN" && to_date !== "NaN-NaN-NaN") {
@@ -82,10 +82,10 @@ $(function () {
         var ref_code = $("#txt-search").val().trim();
 
         var sendData = {};
-        sendData = {
-            wh_code: __addCommaData(__allWhCodePage.split(','), 2),
-            shelf_code: __addCommaData(__allShelfCodePage.split(','), 2)
-        };
+//        sendData = {
+//            wh_code: __addCommaData(__allWhCodePage.split(','), 2),
+//            shelf_code: __addCommaData(__allShelfCodePage.split(','), 2)
+//        };
         var from_date = __formatDate($("#txt-search-date-from").val());
         var to_date = __formatDate($("#txt-search-date-to").val());
         if (from_date !== "NaN-NaN-NaN" && to_date !== "NaN-NaN-NaN") {
@@ -108,10 +108,10 @@ $(function () {
         CURRENT_PAGE = 0;
         var ref_code = $("#txt-search").val().trim();
         var sendData = {};
-        sendData = {
-            wh_code: __addCommaData(__allWhCodePage.split(','), 2),
-            shelf_code: __addCommaData(__allShelfCodePage.split(','), 2)
-        };
+//        sendData = {
+//            wh_code: __addCommaData(__allWhCodePage.split(','), 2),
+//            shelf_code: __addCommaData(__allShelfCodePage.split(','), 2)
+//        };
         if (ref_code !== "") {
             sendData.ref_code = ref_code;
         }
@@ -311,11 +311,11 @@ function _refreshPAGEAuto() {
         __getConfigsPage();
     }
     var sendData = {};
-    sendData = {
-
-        wh_code: __addCommaData(__allWhCodePage.split(','), 2),
-        shelf_code: __addCommaData(__allShelfCodePage.split(','), 2)
-    };
+//    sendData = {
+//
+//        wh_code: __addCommaData(__allWhCodePage.split(','), 2),
+//        shelf_code: __addCommaData(__allShelfCodePage.split(','), 2)
+//    };
     var doc_type = $("#type-select").val().trim();
 
     var doc_no = $("#txt-search").val();
@@ -351,10 +351,10 @@ function _refreshPAGE() {
         __getConfigsPage();
     }
     var sendData = {};
-    sendData = {
-        wh_code: __addCommaData(__allWhCodePage.split(','), 2),
-        shelf_code: __addCommaData(__allShelfCodePage.split(','), 2)
-    };
+//    sendData = {
+//        wh_code: __addCommaData(__allWhCodePage.split(','), 2),
+//        shelf_code: __addCommaData(__allShelfCodePage.split(','), 2)
+//    };
     var doc_type = $("#type-select").val().trim();
 
     var doc_no = $("#txt-search").val();
@@ -741,9 +741,9 @@ function _approveDocUserPack(KEY_ID, trans, userpack) {
     var sendData = {
         doc_no: KEY_ID,
         trans_flag: trans,
-        user_pack: userpack,
-        wh_code: __addCommaData(__allWhCodePage.split(','), 2),
-        shelf_code: __addCommaData(__allShelfCodePage.split(','), 2)
+        user_pack: userpack
+//        wh_code: __addCommaData(__allWhCodePage.split(','), 2),
+//        shelf_code: __addCommaData(__allShelfCodePage.split(','), 2)
     };
     $.ajax({
         url: __SUB_LINK + SERVER_URL + "?action_name=approve_doc_detail_user_pack",
@@ -767,9 +767,9 @@ function _approveDoc(KEY_ID, trans) {
 
     var sendData = {
         doc_no: KEY_ID,
-        trans_flag: trans,
-        wh_code: __addCommaData(__allWhCodePage.split(','), 2),
-        shelf_code: __addCommaData(__allShelfCodePage.split(','), 2)
+        trans_flag: trans
+//        wh_code: __addCommaData(__allWhCodePage.split(','), 2),
+//        shelf_code: __addCommaData(__allShelfCodePage.split(','), 2)
     };
     $.ajax({
         url: __SUB_LINK + SERVER_URL + "?action_name=approve_doc_detail",
